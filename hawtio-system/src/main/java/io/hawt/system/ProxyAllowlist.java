@@ -2,6 +2,7 @@ package io.hawt.system;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -121,6 +122,18 @@ public class ProxyAllowlist {
 
         // test against the regex as last resort
         return details.isAllowed(regexAllowlist);
+    }
+
+    public boolean isAllowedURI(URI uri) {
+        if (this.allowlist.contains(uri.getHost())) {
+            return true;
+        }
+
+        LOG.debug("Updating proxy allowlist: {},", allowlist);
+        if (update() && this.allowlist.contains(uri.getHost())) {
+            return true;
+        }
+        return  false;
     }
 
     public boolean update() {

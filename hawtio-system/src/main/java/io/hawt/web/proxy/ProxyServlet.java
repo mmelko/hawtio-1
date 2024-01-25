@@ -341,8 +341,16 @@ public class ProxyServlet extends HttpServlet {
                     + " but no " + HttpHeaders.LOCATION + " header was found in the response");
             }
 
-            String locStr = rewriteUrlFromResponse(servletRequest,locationHeader.getValue(), Strings.sanitize(targetUriObj.toString()));
-            servletResponse.sendRedirect(locStr);
+            String locationHeaderValue = Strings.sanitizeHeader(locationHeader.getValue());
+            String locStr = rewriteUrlFromResponse(servletRequest,Strings.sanitize(locationHeaderValue), Strings.sanitize(targetUriObj.toString()));
+            try {
+                URI sanitized = new URI(locStr);
+                if (allowlist.isAllowedURI(sanitized) && ("http".equalsIgnoreCase(sanitized.getScheme()) || "https".equalsIgnoreCase(sanitized.getScheme()))) {
+                    servletResponse.sendRedirect(Strings.sanitize(sanitized.toString()));
+                }
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
             return true;
         }
         // 304 needs special handling.  See:
